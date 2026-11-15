@@ -4,6 +4,7 @@ import os
 import re
 import time
 from datetime import datetime, timezone
+from html.parser import HTMLParser
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from urllib.error import HTTPError, URLError
 
@@ -56,9 +57,29 @@ def diagnose(data,now=None):
         if isinstance(advertised,list):issues.extend(code for code in advertised if code in {'source_blocked','free_limit_reached'})
     return sorted(set(issues))
 
-def probe(get=request_json,now=None):
+class AppPage(HTMLParser):
+    def __init__(self):super().__init__();self.root=False;self.bundle=None
+    def handle_starttag(self,tag,attrs):
+        attrs=dict(attrs)
+        if tag=='div' and attrs.get('id')=='root':self.root=True
+        if tag=='script' and attrs.get('type')=='module' and re.fullmatch(r'/assets/[a-zA-Z0-9_.-]+\.js',attrs.get('src','')):self.bundle=attrs['src']
+
+def check_frontend():
+    opener=build_opener(NoRedirect());base='https://padeltime-two.vercel.app'
+    with opener.open(Request(base+'/',headers={'User-Agent':'PadelTime-Monitor/1.0','Cache-Control':'no-cache'}),timeout=12) as response:
+        raw=response.read(524289)
+        if len(raw)>524288:return ['invalid_frontend']
+        page=AppPage();page.feed(raw.decode('utf-8'))
+        if not page.root or not page.bundle:return ['invalid_frontend']
+    with opener.open(Request(base+page.bundle,method='HEAD'),timeout=12) as response:
+        if 'javascript' not in response.headers.get('Content-Type','').lower():return ['invalid_frontend_bundle']
+    return []
+
+def probe(get=request_json,now=None,frontend=check_frontend):
     checked=now or datetime.now(timezone.utc)
-    try:return diagnose(get(HEALTH_URL+'?monitor='+str(int(checked.timestamp()))),checked)
+    try:
+        issues=diagnose(get(HEALTH_URL+'?monitor='+str(int(checked.timestamp()))),checked)
+        return issues or frontend()
     except HTTPError as error:return ['http_'+str(error.code)]
     except (URLError,TimeoutError,OSError):return ['unreachable']
     except (ValueError,TypeError):return ['invalid_health']

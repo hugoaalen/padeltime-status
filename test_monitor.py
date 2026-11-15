@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime,timezone,timedelta
 from urllib.error import HTTPError,URLError
-from monitor import diagnose,probe,confirmed_probe,reconcile,GitHub,MARKER,TITLE
+from monitor import diagnose,probe,confirmed_probe,reconcile,GitHub,MARKER,TITLE,AppPage
 NOW=datetime(2026,11,15,12,tzinfo=timezone.utc)
 def healthy(**patch):
  value={'demo':False,'fetched_at':NOW.isoformat(),'collector':{'enabled':True,'state':'running','last_attempt':NOW.isoformat(),'last_success':NOW.isoformat()},'service':{'issues':[]}}
@@ -41,6 +41,16 @@ class FakeGitHub:
  def incidents(self):return self.opened
  def open(self,issues,url,drill=False):self.calls.append(('open',issues,drill));return {'number':1}
  def recover(self,issue,url):self.calls.append(('recover',issue['number']))
+class FrontendTests(unittest.TestCase):
+ def test_api_health_alone_cannot_hide_a_broken_frontend(self):
+  self.assertEqual(probe(lambda _:healthy(),NOW,lambda:['invalid_frontend']),['invalid_frontend'])
+  self.assertEqual(probe(lambda _:healthy(),NOW,lambda:[]),[])
+ def test_entrypoint_requires_root_and_local_module(self):
+  page=AppPage();page.feed('<div id="root"></div><script crossorigin src="/assets/main-123.js" type="module"></script>')
+  self.assertTrue(page.root);self.assertEqual(page.bundle,'/assets/main-123.js')
+  other=AppPage();other.feed('<html>Maintenance</html><script type="module" src="https://other.example/script.js"></script>')
+  self.assertFalse(other.root);self.assertIsNone(other.bundle)
+
 class NotificationTests(unittest.TestCase):
  def test_first_failure_creates_one_incident_and_repeats_do_not_spam(self):
   gh=FakeGitHub();self.assertEqual(reconcile(gh,['unreachable'],'run'),'incident_opened');self.assertEqual(len(gh.calls),1)
