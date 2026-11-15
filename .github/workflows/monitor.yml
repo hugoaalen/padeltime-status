@@ -1,0 +1,28 @@
+name: PadelTime external monitor
+on:
+  workflow_dispatch:
+    inputs:
+      drill:
+        description: 'Send and close a clearly labelled notification test'
+        type: boolean
+        default: false
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: padeltime-monitor
+  cancel-in-progress: false
+jobs:
+  monitor:
+    if: github.repository == 'hugoaalen/padeltime-status' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Check service and reconcile one incident thread
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MONITOR_DRILL: ${{ inputs.drill == true && 'true' || 'false' }}
+        run: python3 monitor.py
