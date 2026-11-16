@@ -8,7 +8,7 @@ from html.parser import HTMLParser
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from urllib.error import HTTPError, URLError
 
-HEALTH_URL='https://padeltime-two.vercel.app/api/health'
+HEALTH_URL='https://padelontime.vercel.app/api/health'
 REPOSITORY='hugoaalen/padeltime-status'
 MARKER='<!-- padeltime-monitor-incident-v1 -->'
 TITLE='PadelTime: incidencia del servicio'
