@@ -8,16 +8,16 @@ from html.parser import HTMLParser
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from urllib.error import HTTPError, URLError
 
-HEALTH_URL='https://padelontime.vercel.app/api/health'
-REPOSITORY='hugoaalen/padeltime-status'
+HEALTH_URL='https://serveonpoint.vercel.app/api/health'
+REPOSITORY='hugoaalen/serveonpoint-status'
 MARKER='<!-- padeltime-monitor-incident-v1 -->'
-TITLE='PadelTime: incidencia del servicio'
+TITLE='ServeOnPoint: incidencia del servicio'
 
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs):return None
 
 def request_json(url,method='GET',data=None,token=None):
-    headers={'Accept':'application/json','User-Agent':'PadelTime-Monitor/1.0','Cache-Control':'no-cache'}
+    headers={'Accept':'application/json','User-Agent':'ServeOnPoint-Monitor/1.0','Cache-Control':'no-cache'}
     if token:
         if not url.startswith('https://api.github.com/repos/'+REPOSITORY+'/'):raise ValueError('Unexpected authenticated destination')
         headers.update(Authorization='Bearer '+token,**{'X-GitHub-Api-Version':'2022-11-28'})
@@ -65,8 +65,8 @@ class AppPage(HTMLParser):
         if tag=='script' and attrs.get('type')=='module' and re.fullmatch(r'/assets/[a-zA-Z0-9_.-]+\.js',attrs.get('src','')):self.bundle=attrs['src']
 
 def check_frontend():
-    opener=build_opener(NoRedirect());base='https://padeltime-two.vercel.app'
-    with opener.open(Request(base+'/',headers={'User-Agent':'PadelTime-Monitor/1.0','Cache-Control':'no-cache'}),timeout=12) as response:
+    opener=build_opener(NoRedirect());base='https://serveonpoint.vercel.app'
+    with opener.open(Request(base+'/',headers={'User-Agent':'ServeOnPoint-Monitor/1.0','Cache-Control':'no-cache'}),timeout=12) as response:
         raw=response.read(524289)
         if len(raw)>524288:return ['invalid_frontend']
         page=AppPage();page.feed(raw.decode('utf-8'))

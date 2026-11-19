@@ -1,4 +1,4 @@
-name: PadelTime external monitor
+name: ServeOnPoint external monitor
 on:
   workflow_dispatch:
     inputs:
@@ -12,11 +12,11 @@ permissions:
   contents: read
   issues: write
 concurrency:
-  group: padeltime-monitor
+  group: serveonpoint-monitor
   cancel-in-progress: false
 jobs:
   monitor:
-    if: github.repository == 'hugoaalen/padeltime-status' && github.event.repository.private == false
+    if: github.repository == 'hugoaalen/serveonpoint-status' && github.event.repository.private == false
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
