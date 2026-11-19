@@ -1,6 +1,6 @@
-# PadelTime external monitor
+# ServeOnPoint external monitor
 
-Independent checks of the public PadelTime health endpoint, intended every 15 minutes.
+Independent checks of the public ServeOnPoint health endpoint, intended every 15 minutes.
 The production clock and the application do not need to be open for this monitor.
 
 A failed probe is retried after 15 seconds. Persistent failures create one public
@@ -16,7 +16,7 @@ breaks. No user data, application credentials or collector secrets are used.
 
 This repository is public so standard GitHub-hosted runners are free. The workflow
 refuses to run in private or renamed forks; no paid runners, artifacts or application
-source are needed. Source for deployment is maintained in the private PadelTime app
+source are needed. Source for deployment is maintained in the private ServeOnPoint app
 under `infra/monitor`; publish only this directory to the status repository.
 
 Limits: scheduled Actions can be delayed, and public repository schedules are disabled
